@@ -21,8 +21,8 @@ client = pymongo.MongoClient(conn)
 
 
 # Define database and collection
-db = client.news_db
-collection = db.items
+db = client.mars_db
+mars_scrape = db.items
 
 
 # In[3]:
@@ -66,10 +66,12 @@ try:
             'price': news_p
         }
 
-        collection.insert_one(post)
+        mars_scrape.insert_one(post)
 
 except Exception as e:
     print(e)
+
+#browser.close()
 
 
 # In[7]:
@@ -102,10 +104,12 @@ try:
         post = {
             'featured_image_url': intro_url + featured_image_url        }
 
-        collection.insert_one(post)
+        mars_scrape.insert_one(post)
 
 except Exception as e:
     print(e)
+    
+#browser.close()
 
 
 # In[9]:
@@ -139,10 +143,12 @@ try:
         post = {
             'mars_weather': mars_weather       }
 
-        collection.insert_one(post)
+        mars_scrape.insert_one(post)
 
 except Exception as e:
     print(e)
+    
+#browser.close()
 
 
 # In[11]:
@@ -175,10 +181,12 @@ try:
         post = {
             'mars_facts_html': mars_stats       }
 
-        collection.insert_one(post)
+        mars_scrape.insert_one(post)
 
 except Exception as e:
     print(e)
+    
+#browser.close()
 
 
 # In[13]:
@@ -212,6 +220,8 @@ usgs_soup_1 = BeautifulSoup(html, 'html.parser')
 usgs_img_1 = usgs_soup_1.find('div', class_='downloads').find('a')['href']
 print(usgs_img_1)
 
+#browser.close()
+
 
 # In[18]:
 
@@ -243,6 +253,8 @@ usgs_soup_2 = BeautifulSoup(html, 'html.parser')
 
 usgs_img_2 = usgs_soup_2.find('div', class_='downloads').find('a')['href']
 print(usgs_img_2)
+
+#browser.close()
 
 
 # In[20]:
@@ -276,6 +288,8 @@ usgs_soup_3 = BeautifulSoup(html, 'html.parser')
 usgs_img_3 = usgs_soup_3.find('div', class_='downloads').find('a')['href']
 print(usgs_img_3)
 
+#browser.close()
+
 
 # In[22]:
 
@@ -308,6 +322,8 @@ usgs_soup_4 = BeautifulSoup(html, 'html.parser')
 usgs_img_4 = usgs_soup_4.find('div', class_='downloads').find('a')['href']
 print(usgs_img_4)
 
+#browser.close()
+
 
 # In[29]:
 
@@ -326,14 +342,16 @@ if (usgs_img_1 and usgs_img_2 and usgs_img_3 and usgs_img_4):
 
     # Dictionary to be inserted as a MongoDB document
     hemisphere_image_urls = [
-    {"title": hemi_1, "img_url": usgs_img_1},
-    {"title": hemi_2, "img_url": usgs_img_2},
-    {"title": hemi_3, "img_url": usgs_img_3},
-    {"title": hemi_4, "img_url": usgs_img_4}
+    {"hemi1_title": hemi_1, "1_img_url": usgs_img_1},
+    {"hemi2_title": hemi_2, "2_img_url": usgs_img_2},
+    {"hemi3_title": hemi_3, "3_img_url": usgs_img_3},
+    {"hemi4_title": hemi_4, "4_img_url": usgs_img_4}
     ]
 
 
-    collection.insert_many(hemisphere_image_urls)
+    mars_scrape.insert_many(hemisphere_image_urls)
+    
+browser.quit()
 
 
 # In[7]:
