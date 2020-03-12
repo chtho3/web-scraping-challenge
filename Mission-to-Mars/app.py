@@ -12,6 +12,7 @@ mongo = PyMongo(app, uri="mongodb://localhost:27017/scrape_mars")
 @app.route("/")
 def index():
     mars_scrape = mongo.db.mars_scrape.find_one()
+    print(mars_scrape)
 
     return render_template("index.html", mars_scrape=mars_scrape)
 
