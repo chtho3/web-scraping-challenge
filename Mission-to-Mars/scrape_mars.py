@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
 
 # Import Dependencies
 import pandas as pd
@@ -10,356 +8,167 @@ from splinter import Browser
 from bs4 import BeautifulSoup
 import requests
 import pymongo
-
-
-# In[2]:
-
-def scrape():
-    # Initialize PyMongo to work with MongoDBs
-    conn = 'mongodb://localhost:27017'
-    client = pymongo.MongoClient(conn)
-
-
-    # Define database and collection
-    db = client.mars_db
-    mars_scrape = db.items
-
-
-    # In[3]:
-
-
-    mars_url= "https://mars.nasa.gov/news/"
-    jpl_url= "https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars"
-
-    executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser('chrome', **executable_path, headless=False)
-
-
-    # In[4]:
-
-
-    browser.visit(mars_url)
-
-
-    # In[6]:
-
-
-    # MARS NEWS DATA SCRAPING
-    html = browser.html
-    mars_soup = BeautifulSoup(html, 'html.parser')
-
-    try:
-        # Identify and return title of post
-        news_title = mars_soup.find('div', class_='list_text').find('a').text
-        # Identify and return paragraph text
-        news_p = mars_soup.find('div', class_='article_teaser_body').text
-
-        # Run only if title, price, and link are available
-        if (news_title and news_p):
-            # Print results
-            print(news_title)
-            print(news_p)
-
-            # Dictionary to be inserted as a MongoDB document
-            post = {
-                'title': news_title,
-                'price': news_p
-            }
-
-            mars_scrape.insert_one(post)
-
-    except Exception as e:
-        print(e)
-
-    #browser.close()
-
-
-    # In[7]:
-
-
-    # Navigate chromedriver to jpl_url
-    executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser('chrome', **executable_path, headless=False)
-    browser.visit(jpl_url)
-
-
-    # In[8]:
-
-
-    #JPL DATA IMG SCRAPING
-    html = browser.html
-    jpl_soup = BeautifulSoup(html, 'html.parser')
-    intro_url="https://www.jpl.nasa.gov"
-
-    try:
-        # Identify and return title of post
-        featured_image_url = jpl_soup.find('div', class_="img").img['src']
-
-        # Run only if title, price, and link are available
-        if (featured_image_url):
-            # Print results
-            print(intro_url + featured_image_url)
-
-            # Dictionary to be inserted as a MongoDB document
-            post = {
-                'featured_image_url': intro_url + featured_image_url        }
-
-            mars_scrape.insert_one(post)
-
-    except Exception as e:
-        print(e)
-
-    #browser.close()
-
-
-    # In[9]:
-
-
-    #MARS WEATHER
-    twit_url='https://twitter.com/marswxreport?lang=en'
-
-    executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser('chrome', **executable_path, headless=False)
-    browser.visit(twit_url)
-
-
-    # In[10]:
-
-
-    html = browser.html
-    twit_soup = BeautifulSoup(html, 'html.parser')
-
-    #Scrape Twitter
-    try:
-        # Identify and return weather
-        mars_weather = twit_soup.find('div', class_="css-901oao r-hkyrab r-1qd0xha r-a023e6 r-16dba41 r-ad9z0x r-bcqeeo r-bnwqim r-qvutc0").text
-
-        # Run only if available
-        if (mars_weather):
-            # Print results
-            print(mars_weather)
-
-            # Dictionary to be inserted as a MongoDB document
-            post = {
-                'mars_weather': mars_weather       }
-
-            mars_scrape.insert_one(post)
-
-    except Exception as e:
-        print(e)
-
-    #browser.close()
-
-
-    # In[11]:
-
-
-    #MARS FACTS
-    facts_url = "https://space-facts.com/mars/"
-
-    executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser('chrome', **executable_path, headless=False)
-    browser.visit(facts_url)
-
-
-    # In[12]:
-
-
-    html = browser.html
-    table_soup = BeautifulSoup(html, 'html.parser')
-
-     #Scrape Stats
-    try:
-        # Identify and return weather
-        mars_stats = table_soup.find('table', class_="tablepress tablepress-id-p-mars").find('tbody')
-        # Run only if available
-        if (mars_stats):
-            # Print results
-            print(mars_stats)
-
-            # Dictionary to be inserted as a MongoDB document
-            post = {
-                'mars_facts_html': mars_stats       }
-
-            mars_scrape.insert_one(post)
-
-    except Exception as e:
-        print(e)
-
-    #browser.close()
-
-
-    # In[13]:
-
-
-    #MARS HEMISPHERES (img 1)
-    usgs_url = "https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
-
-    executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser('chrome', **executable_path, headless=False)
-    browser.visit(usgs_url)
-
-
-    # In[14]:
-
-
-    html = browser.html
-    usgs_soup = BeautifulSoup(html, 'html.parser')
-    usgs_prefix = "https://astrogeology.usgs.gov"
-
-    hemi_1 = usgs_soup.find('div', class_='description').find('a').text
-    results_get = usgs_soup.find('div', class_='description').find('a')['href']
-    print(hemi_1)
-
-    results_url = usgs_prefix + results_get
-
-    browser.visit(results_url)
-    html = browser.html
-    usgs_soup_1 = BeautifulSoup(html, 'html.parser')
-
-    usgs_img_1 = usgs_soup_1.find('div', class_='downloads').find('a')['href']
-    print(usgs_img_1)
-
-    #browser.close()
-
-
-    # In[18]:
-
-
-    #MARS HEMISPHERES (img 2)
-    usgs_url = "https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
-
-    executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser('chrome', **executable_path, headless=False)
-    browser.visit(usgs_url)
-
-
-    # In[19]:
-
-
-    html = browser.html
-    usgs_soup = BeautifulSoup(html, 'html.parser')
-    usgs_prefix = "https://astrogeology.usgs.gov"
-
-    hemi_2 = usgs_soup.find_all('div', class_='description')[1].find('a').text
-    results_get = usgs_soup.find_all('div', class_='description')[1].find('a')['href']
-    print(results_get)
-
-    results_url = usgs_prefix + results_get
-
-    browser.visit(results_url)
-    html = browser.html
-    usgs_soup_2 = BeautifulSoup(html, 'html.parser')
-
-    usgs_img_2 = usgs_soup_2.find('div', class_='downloads').find('a')['href']
-    print(usgs_img_2)
-
-    #browser.close()
-
-
-    # In[20]:
-
-
-    #MARS HEMISPHERES (img 3)
-    usgs_url = "https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
-
-    executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser('chrome', **executable_path, headless=False)
-    browser.visit(usgs_url)
-
-
-    # In[21]:
-
-
-    html = browser.html
-    usgs_soup = BeautifulSoup(html, 'html.parser')
-    usgs_prefix = "https://astrogeology.usgs.gov"
-
-    hemi_3 = usgs_soup.find_all('div', class_='description')[2].find('a').text
-    results_get = usgs_soup.find_all('div', class_='description')[2].find('a')['href']
-    print(results_get)
-
-    results_url = usgs_prefix + results_get
-
-    browser.visit(results_url)
-    html = browser.html
-    usgs_soup_3 = BeautifulSoup(html, 'html.parser')
-
-    usgs_img_3 = usgs_soup_3.find('div', class_='downloads').find('a')['href']
-    print(usgs_img_3)
-
-    #browser.close()
-
-
-    # In[22]:
-
-
-    #MARS HEMISPHERES (img 4)
-    usgs_url = "https://astrogeology.usgs.gov/search/results?q=hemisphere+enhanced&k1=target&v1=Mars"
-
-    executable_path = {'executable_path': 'chromedriver.exe'}
-    browser = Browser('chrome', **executable_path, headless=False)
-    browser.visit(usgs_url)
-
-
-    # In[23]:
-
-
-    html = browser.html
-    usgs_soup = BeautifulSoup(html, 'html.parser')
-    usgs_prefix = "https://astrogeology.usgs.gov"
-
-    hemi_4 = usgs_soup.find_all('div', class_='description')[3].find('a').text
-    results_get = usgs_soup.find_all('div', class_='description')[3].find('a')['href']
-    print(results_get)
-
-    results_url = usgs_prefix + results_get
-
-    browser.visit(results_url)
-    html = browser.html
-    usgs_soup_4 = BeautifulSoup(html, 'html.parser')
-
-    usgs_img_4 = usgs_soup_4.find('div', class_='downloads').find('a')['href']
-    print(usgs_img_4)
-
-    #browser.close()
-
-
-    # In[29]:
-
-
-    # Add to collection
-    if (usgs_img_1 and usgs_img_2 and usgs_img_3 and usgs_img_4):
-        # Print results
-        print(hemi_1)
-        print(hemi_2)
-        print(hemi_3)
-        print(hemi_4)
-        print(usgs_img_1)
-        print(usgs_img_2)
-        print(usgs_img_3)
-        print(usgs_img_4)
-
-    # Dictionary to be inserted as a MongoDB document
-    hemisphere_image_urls = [
-        {"hemi1_title": hemi_1, "1_img_url": usgs_img_1},
-        {"hemi2_title": hemi_2, "2_img_url": usgs_img_2},
-        {"hemi3_title": hemi_3, "3_img_url": usgs_img_3},
-        {"hemi4_title": hemi_4, "4_img_url": usgs_img_4}
-        ]
-
-
-    mars_scrape.insert_many(hemisphere_image_urls)
-
+import datetime as dt
+
+def scrape_all():
+
+    # Initiate headless driver for deployment
+    browser = Browser("chrome", executable_path="chromedriver", headless=True)
+    news_title, news_paragraph = mars_news(browser)
+
+    # Run all scraping functions and store in dictionary.
+    data = {
+        "news_title": news_title,
+        "news_paragraph": news_paragraph,
+        "featured_image": featured_image(browser),
+        "hemispheres": hemispheres(browser),
+        "weather": twitter_weather(browser),
+        "facts": mars_facts(),
+        "last_modified": dt.datetime.now()
+    }
+
+    # Stop webdriver and return data
     browser.quit()
-
-    return mars_scrape
-    # In[7]:
+    return data
 
 
-    # Convert this jupyter notebook file to a python script
-    # ! jupyter nbconvert --to python --output scrape_mars.py
+def mars_news(browser):
+    url = "https://mars.nasa.gov/news/"
+    browser.visit(url)
+
+    # Get first list item and wait half a second if not immediately present
+    browser.is_element_present_by_css("ul.item_list li.slide", wait_time=0.5)
+
+    html = browser.html
+    news_soup = BeautifulSoup(html, "html.parser")
+
+    try:
+        slide_elem = news_soup.select_one("ul.item_list li.slide")
+        news_title = slide_elem.find("div", class_="content_title").get_text()
+        news_p = slide_elem.find(
+            "div", class_="article_teaser_body").get_text()
+
+    except AttributeError:
+        return None, None
+
+    return news_title, news_p
 
 
+def featured_image(browser):
+    url = "https://www.jpl.nasa.gov/spaceimages/?search=&category=Mars"
+    browser.visit(url)
+
+    # Find and click the full image button
+    full_image_elem = browser.find_by_id("full_image")
+    full_image_elem.click()
+
+    # Find the more info button and click that
+    browser.is_element_present_by_text("more info", wait_time=0.5)
+    more_info_elem = browser.find_link_by_partial_text("more info")
+    more_info_elem.click()
+
+    # Parse the resulting html with soup
+    html = browser.html
+    img_soup = BeautifulSoup(html, "html.parser")
+
+    # Find the relative image url
+    img = img_soup.select_one("figure.lede a img")
+
+    try:
+        img_url_rel = img.get("src")
+
+    except AttributeError:
+        return None
+
+    # Use the base url to create an absolute url
+    img_url = f"https://www.jpl.nasa.gov{img_url_rel}"
+
+    return img_url
 
 
+def hemispheres(browser):
+
+    # A way to break up long strings
+    url = (
+        "https://astrogeology.usgs.gov/search/"
+        "results?q=hemisphere+enhanced&k1=target&v1=Mars"
+    )
+
+    browser.visit(url)
+
+    # Click the link, find the sample anchor, return the href
+    hemisphere_image_urls = []
+    for i in range(4):
+
+        # Find the elements on each loop to avoid a stale element exception
+        browser.find_by_css("a.product-item h3")[i].click()
+
+        hemi_data = scrape_hemisphere(browser.html)
+
+        # Append hemisphere object to list
+        hemisphere_image_urls.append(hemi_data)
+
+        # Finally, we navigate backwards
+        browser.back()
+
+    return hemisphere_image_urls
+
+
+def twitter_weather(browser):
+    url = "https://twitter.com/marswxreport?lang=en"
+    browser.visit(url)
+
+    html = browser.html
+    weather_soup = BeautifulSoup(html, "html.parser")
+
+    # First, find a tweet with the data-name `Mars Weather`
+    tweet_attrs = {"class": "tweet", "data-name": "Mars Weather"}
+    mars_weather_tweet = weather_soup.find("div", attrs=tweet_attrs)
+
+    # Next, search within the tweet for the p tag containing the tweet text
+    mars_weather = mars_weather_tweet.find("p", "tweet-text").get_text()
+
+    return mars_weather
+
+
+def scrape_hemisphere(html_text):
+
+    # Soupify the html text
+    hemi_soup = BeautifulSoup(html_text, "html.parser")
+
+    # Try to get href and text except if error.
+    try:
+        title_elem = hemi_soup.find("h2", class_="title").get_text()
+        sample_elem = hemi_soup.find("a", text="Sample").get("href")
+
+    except AttributeError:
+
+        # Image error returns None for better front-end handling
+        title_elem = None
+        sample_elem = None
+
+    hemisphere = {
+        "title": title_elem,
+        "img_url": sample_elem
+    }
+
+    return hemisphere
+
+
+def mars_facts():
+    try:
+        df = pd.read_html("http://space-facts.com/mars/")[0]
+    except BaseException:
+        return None
+
+    df.columns = ["description", "value"]
+    df.set_index("description", inplace=True)
+
+    # Add some bootstrap styling to <table>
+    return df.to_html(classes="table table-striped")
+
+
+if __name__ == "__main__":
+
+    # If running as script, print scraped data
+    print(scrape_all())
